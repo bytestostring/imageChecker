@@ -7,6 +7,7 @@ private $imageType, $imageBin, $f_context, $miniature, $first_bytes;
 private $imageInfo = [];
 private $mini = false;
 private $max_bytes = 1024*1024*5;
+private $max_resolution;
 private $mem_cache_ttl = 1200;
 private $mem, $current_bytes, $serialize_url, $link, $original_link;
 private $mem_prefix = "img_";
@@ -22,6 +23,8 @@ function __construct()
 	}
 	$this->mem_cache_ttl = $memcached['ttl'];
 	$this->max_bytes = $max['size'];
+	$this->max_resolution['width'] = $max['width'];
+	$this->max_resolution['height'] = $max['height'];
 	$this->miniature = $miniature;
 	$this->log_file = __DIR__ ."/image_checker.log";
 	$opts = [ 
@@ -425,6 +428,12 @@ public function getImage()
 		$this->mem->set('err_' . $this->serialize_url, 'Could not detect the resolution', $this->mem_cache_ttl);
 		$this->mem->set("lock_{$this->serialize_url}", 0, 5);
 		$this->createError("Could not detect the resolution");
+		return false;
+	}
+	if ($this->imageInfo['width'] > $this->max_resolution['width'] || $this->imageInfo['height'] > $this->max_resolution['height']) {
+		$this->mem->set('err_' . $this->serialize_url, 'The resolution is too large', $this->mem_cache_ttl);
+		$this->mem->set("lock_{$this->serialize_url}", 0, 5);
+		$this->createError("The resolution is too large");
 		return false;
 	}
 	while (!feof($this->link)):	
