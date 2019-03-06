@@ -29,8 +29,8 @@ function __construct()
 	$this->log_file = __DIR__ ."/image_checker.log";
 	$opts = [ 
 		'http' => 
-		['method' => 'GET', 'header' => "User-Agent: ImageChecker 0.3\r\n", 'max_redirects' => 3, 'protocol_version' => '1.1' ]
-
+		['method' => 'GET', 'header' => "User-Agent: ImageChecker 0.3\r\n",
+		 'max_redirects' => 3, 'protocol_version' => '1.1' ]
 		];
 
 	$this->f_context = stream_context_create($opts);
@@ -68,7 +68,7 @@ function getImageData(string &$source)
 			$out['subtype'] = 'JFIF';
 		}
 
-		// Find SOF0 marker of main image
+		// Find SOFn marker of main image
 		$i = 0;
 		while ($i < $src_length-1):
 			$sym = ord($ascii[$i]);
@@ -83,11 +83,11 @@ function getImageData(string &$source)
 				$i += $len+2;
 				continue;
 			}
-				if ($sym == 0xC0) {
+				if ($sym == 0xC0 || $sym == 0xC1 || $sym == 0xC2 || $sym == 0xC3) {
 					$out['width'] = ord($ascii[$i+7]) * 2**8  + ord($ascii[$i+8]);
 					$out['height'] = ord($ascii[$i+5]) * 2**8 + ord($ascii[$i+6]);
 					break;
-				}
+				} 
 			$i++;
 		endwhile;
 		break;
