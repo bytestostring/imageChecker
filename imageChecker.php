@@ -439,14 +439,14 @@ public function getImage()
 	}
 	while (!feof($this->link)):	
 		$file .= fread($this->link, $bytes);
-		$reads += $bytes;
+		$reads = strlen($file);
+		if ($reads > $this->max_bytes) {
+			$this->mem->set('err_' . $this->serialize_url, 'File size is too large', $this->mem_cache_ttl);
+			$this->mem->set("lock_{$this->serialize_url}", 0, 5);
+			return false;
+		}
 	endwhile;
 	$this->current_bytes = strlen($file);
-	if ($reads > $this->max_bytes) {
-		$this->mem->set('err_' . $this->serialize_url, 'File size is too large', $this->mem_cache_ttl);
-		$this->mem->set("lock_{$this->serialize_url}", 0, 5);
-		return false;
-	}
 	$this->imageBin = $file;
 	$this->syslog("File \"{$this->original_link}\" has been downloaded. File size: {$this->current_bytes} bytes.");
 
