@@ -70,7 +70,6 @@ function getImageData(string &$source)
 
 		// Find SOF0 marker of main image
 		$i = 0;
-
 		while ($i < $src_length-1):
 			$sym = ord($ascii[$i]);
 			if ($sym != 0xFF) {
@@ -78,7 +77,7 @@ function getImageData(string &$source)
 				continue;	
 			}
 			$sym = ord($ascii[$i+1]);
-			//Check APP1-APP15 and DQT markers
+			//Check APP0-APP15 and DQT markers
 			if (($sym >= 224 && $sym <= 239) || $sym == 0xDB || $sym == 0xDD) {
 				$len = ord($ascii[$i+2]) * 2**8  + ord($ascii[$i+3]);
 				$i += $len+2;
@@ -91,7 +90,6 @@ function getImageData(string &$source)
 				}
 			$i++;
 		endwhile;
-			
 		break;
 		case '3':
 		// Detect IHDR marker
@@ -408,15 +406,18 @@ public function getImage()
 {
 	$bytes = 8192;
 	$reads = 0;
+	$jpg_bytes = $bytes*16;
 	$file = $this->first_bytes;
 	if ($this->imageType == 2) {
-		while ($reads < $bytes*16 && !feof($this->link)) {
+		while ($reads < $jpg_bytes && !feof($this->link)) {
 			$file .= fread($this->link, $bytes);
-			$reads += $bytes;
+			$reads = strlen($file);
 		}
 	} else {
-		$file .= fread($this->link, $bytes);
-		$reads += $bytes;
+		while ($reads < $bytes && !feof($this->link)) {
+			$file .= fread($this->link, $bytes);
+			$reads = strlen($file);
+		}
 	}
 	$idata = $this->getImageData($file);
 	if (!$idata) {
