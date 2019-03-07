@@ -270,7 +270,7 @@ public function setLink($link)
 			$headers[$matches[1]] = $matches[2];
 		}
 	}
-	$this->headers= $f_headers;
+	$this->headers= $headers;
 	$this->link = $f;
 	return true;
 }
