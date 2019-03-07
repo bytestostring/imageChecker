@@ -3,7 +3,7 @@
 class ImageChecker {
 
 private $log_file;
-private $imageType, $imageBin, $f_context, $miniature, $first_bytes;
+private $imageType, $imageBin, $f_context, $miniature, $first_bytes, $headers;
 private $imageInfo = [];
 private $mini = false;
 private $max_bytes = 1024*1024*5;
@@ -225,7 +225,7 @@ public function setLink($link)
 		$this->createError("Incorrect link");
 		return false;
         }
-	$link = "{$link_parse['scheme']}://{$link_parse['host']}/".substr($link_parse['path'], 1);
+	$link = "{$link_parse['scheme']}://{$link_parse['host']}/".substr(str_replace('%2F', '/', urlencode($link_parse['path'])), 1);
 	$this->serialize_url = md5($link);
 	$this->original_link = $link;
 	do {
@@ -257,11 +257,20 @@ public function setLink($link)
 		$this->syslog("User has locked the hash: [{$this->mem_prefix}] {$this->serialize_url}");
 	}
 	$f = @fopen($link, "rb", false, $this->f_context);
+	$f_headers = $http_response_header;
 	if (!$f) {
 		$this->mem->set("lock_{$this->serialize_url}", 0, 30);
+		$this->syslog("Could not open the file: {$link}");
+		$this->syslog(serialize($f_headers));
 		return false;
 	}
-
+	$headers = [];
+	foreach ($f_headers as $val) {
+		if (preg_match('/([A-Za-z0-9\-]*):\s(.*)/', $val, $matches)) {
+			$headers[$matches[1]] = $matches[2];
+		}
+	}
+	$this->headers= $f_headers;
 	$this->link = $f;
 	return true;
 }
