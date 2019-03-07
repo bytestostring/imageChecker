@@ -417,6 +417,16 @@ public function getImage()
 	$reads = 0;
 	$jpg_bytes = $bytes*16;
 	$file = $this->first_bytes;
+	if (isset($this->headers['Content-Length'])) {
+		$pre_len = (int) trim($this->headers['Content-Length']);
+		if ($pre_len > $this->max_bytes) {
+			$this->syslog("The header [Content-Length] has a large value: {$pre_len}");
+			$this->mem->set("lock_{$this->serialize_url}", 0, 5);
+			$this->mem->set('err_' . $this->serialize_url, 'File size is too large', $this->mem_cache_ttl);
+			$this->createError("File size is too large");
+			return false;
+		}
+	}
 	if ($this->imageType == 2) {
 		while ($reads < $jpg_bytes && !feof($this->link)) {
 			$file .= fread($this->link, $bytes);
