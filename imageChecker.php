@@ -29,8 +29,11 @@ function __construct()
 	$this->log_file = __DIR__ ."/image_checker.log";
 	$opts = [ 
 		'http' => 
-		['method' => 'GET', 'header' => "User-Agent: ImageChecker 0.3\r\n",
-		 'max_redirects' => 3, 'protocol_version' => '1.1' ]
+		['timeout' => 2.0,
+		 'method' => 'GET',
+		 'header' => "User-Agent: ImageChecker 0.3\r\n",
+		 'max_redirects' => 3,
+		 'protocol_version' => '1.1' ]
 		];
 
 	$this->f_context = stream_context_create($opts);
