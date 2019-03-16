@@ -33,7 +33,8 @@ function __construct()
 		 'method' => 'GET',
 		 'header' => "User-Agent: ImageChecker 0.3\r\n",
 		 'max_redirects' => 3,
-		 'protocol_version' => '1.1' ]
+		 'protocol_version' => '1.1' ],
+		 'ssl' => ['verify_peer' => false, 'verify_peer_name' => false ]
 		];
 
 	$this->f_context = stream_context_create($opts);
@@ -229,6 +230,9 @@ public function setLink($link)
 		return false;
         }
 	$link = "{$link_parse['scheme']}://{$link_parse['host']}/".substr(str_replace('%2F', '/', urlencode($link_parse['path'])), 1);
+	if (isset($link_parse['query'])) {
+		$link .= "?".str_replace('%3D', '=', urlencode($link_parse['query']));
+	}
 	$this->serialize_url = md5($link);
 	$this->original_link = $link;
 	do {
