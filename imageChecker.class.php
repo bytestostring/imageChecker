@@ -21,6 +21,7 @@ function __construct()
 		$this->createError('Could not connect to Memcached');
 		exit;
 	}
+	$this->get_url = $get_url;
 	$this->mem_cache_ttl = $memcached['ttl'];
 	$this->max_bytes = $max['size'];
 	$this->max_resolution['width'] = $max['width'];
@@ -214,9 +215,10 @@ public function setLink($link)
 {
 	$http_host = preg_quote($_SERVER['HTTP_HOST'], "/").preg_quote($_SERVER['SCRIPT_NAME'], "/");
 	
-	if (preg_match("/^http(s)?:\/\/".$http_host."/", $link) === 1) {
-		$this->createError("Recursion is not allowed");
-		return false;
+	if (preg_match("/^http(s)?:\/\/".$http_host."\?".$this->get_url."=/i", $link) === 1) {
+		$link = preg_replace("/^(http(s)?:\/\/".$http_host."\?".$this->get_url."=){0,}/i", "", $link);
+		//$this->createError("Recursion is not allowed");
+		//return false;
 	}
 	$link_parse = parse_url($link);
 	if (!isset($link_parse['scheme']) || !isset($link_parse['host']) || !isset($link_parse['path'])) {
@@ -534,36 +536,5 @@ public function syslog($text)
 
  }
 
-	if (!isset($_GET['url'])) {
-		http_response_code(403);
-		exit;
-	}
-	$url = strip_tags($_GET['url']);
-	$ich = new ImageChecker;
-	if (isset($_GET['mini'])) {
-		$ich->set_mini(true);
-	}
-
-	if (!isset($err)) {
-		if (!$ich->setLink($url)) {
-			$err = "An error to get the image";
-		}
-	}
-	if (!isset($err)) {
-		if (!$ich->FastIdentifyImage()) {
-			$err = "An error to identify a type";
-		}
-	}
-	if (!isset($err)) {
-		if (!$ich->getImage()) {
-			$err = "File size is too large";
-		}
-	}
-
-	if (isset($err)) {
-		$ich->createError($err);
-		exit;
-	}
-		$ich->showImage();
 ?>
 
